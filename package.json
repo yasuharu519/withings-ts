@@ -1,0 +1,27 @@
+{
+  "name": "withings-ts",
+  "version": "0.0.1",
+  "description": "withings API library",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/yasuharu519/withings-ts.git"
+  },
+  "keywords": [
+    "withings"
+  ],
+  "author": "Yasuharu Sawada",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yasuharu519/withings-ts/issues"
+  },
+  "homepage": "https://github.com/yasuharu519/withings-ts#readme"
+}
