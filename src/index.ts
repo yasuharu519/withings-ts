@@ -1,3 +1,253 @@
-class Client {}
+import * as crypto from "crypto";
+import axios from "axios";
+import {
+  GetAccessTokenResponse,
+  GetNonceResponse,
+  GetNotifyListResponse,
+  GetRefreshTokenResponse,
+  AddNotifySubscribeResponse,
+  RevokeNotifySubscribeResponse,
+  GetMeasureResult,
+} from "./requestTypes";
+
+const WITHINGS_ENDPOINTS = {
+  signature: "https://wbsapi.withings.net/v2/signature",
+  oauth2: "https://wbsapi.withings.net/v2/oauth2",
+  notify: "https://wbsapi.withings.net/notify",
+  measure: "https://wbsapi.withings.net/measure",
+};
+
+const WITHINGS_ACTIONS = {
+  getnonce: "getnonce",
+  requesttoken: "requesttoken",
+  subscribe: "subscribe",
+  revoke: "revoke",
+  getmeas: "getmeas",
+} as const;
+type WITHINGS_ACTIONS = typeof WITHINGS_ACTIONS[keyof typeof WITHINGS_ACTIONS];
+
+const WITHINGS_GRANT_TYPE = {
+  authorization_code: "authorization_code",
+  refresh_token: "refresh_token",
+} as const;
+type WITHINGS_GRANT_TYPE = typeof WITHINGS_GRANT_TYPE[keyof typeof WITHINGS_GRANT_TYPE];
+
+class Client {
+  CLIENT_ID: string;
+  CLIENT_SECRET: string;
+  CALLBACK_URI: string;
+
+  constructor(client_id: string, client_secret: string, callback_uri: string) {
+    this.CLIENT_ID = client_id;
+    this.CLIENT_SECRET = client_secret;
+    this.CALLBACK_URI = callback_uri;
+  }
+
+  /**
+   * take paramters as map, sort by key and create signature
+   * @param params map of key/value
+   * @returns created signature
+   */
+  private createSignature(params: { [key: string]: string }): string {
+    // sort parameters
+    const keyParams = Object.keys(params)
+      .sort()
+      .map((key) => params[key])
+      .join(",");
+    return crypto
+      .createHmac("sha256", this.CLIENT_SECRET)
+      .update(keyParams)
+      .digest("hex");
+  }
+
+  private async postRequest<ResponseType>(
+    endpoint: string,
+    params: Map<string, string> = new Map(),
+    headers?: Object
+  ) {
+    const response = await axios.post<ResponseType>(endpoint, null, {
+      params: params,
+      headers: Object.assign(
+        {
+          "Content-Type": "multipart/form-data",
+        },
+        headers
+      ),
+    });
+
+    return response;
+  }
+
+  private async requestWithSignatureBase<ResponseType>(
+    endpoint: string,
+    signatureToken: Map<string, string>,
+    params: Map<string, string> = new Map(),
+    headers?: Object
+  ) {
+    const response = await this.postRequest<ResponseType>(
+      endpoint,
+      new Map({ ...signatureToken, ...params }).set(
+        "signature",
+        this.createSignature(Object.fromEntries(signatureToken))
+      ),
+      headers
+    );
+
+    return response.data;
+  }
+
+  private async requestWithSignature<ResponseType>(
+    endpoint: string,
+    action: WITHINGS_ACTIONS,
+    params: Map<string, string>,
+    headers?: Object
+  ) {
+    const nonce = (await this.getNonce()).body.nonce;
+    const signatureToken = new Map([
+      ["action", action],
+      ["client_id", this.CLIENT_ID],
+      ["nonce", nonce],
+    ]);
+
+    return this.requestWithSignatureBase<ResponseType>(
+      endpoint,
+      signatureToken,
+      params,
+      headers
+    );
+  }
+
+  /**
+   * Signature V2 - Getnonce
+   */
+  public async getNonce(): Promise<GetNonceResponse> {
+    const signatureToken = new Map([
+      ["action", WITHINGS_ACTIONS.getnonce],
+      ["client_id", this.CLIENT_ID],
+      ["timestamp", Math.floor(new Date().getTime() / 1000).toString()],
+    ]);
+
+    return this.requestWithSignatureBase<GetNonceResponse>(
+      WITHINGS_ENDPOINTS.signature,
+      signatureToken
+    );
+  }
+
+  /**
+   *  OAuth2.0 - Get your access token
+   */
+  async getAccessToken(
+    authorizationCode: string
+  ): Promise<GetAccessTokenResponse> {
+    const params = new Map([
+      ["client_secret", this.CLIENT_SECRET],
+      ["grant_type", WITHINGS_GRANT_TYPE.authorization_code],
+      ["code", authorizationCode],
+      ["redirect_uri", this.CALLBACK_URI],
+    ]);
+
+    return this.requestWithSignature<GetAccessTokenResponse>(
+      WITHINGS_ENDPOINTS.oauth2,
+      WITHINGS_ACTIONS.requesttoken,
+      params
+    );
+  }
+
+  /**
+   * OAuth2.0 - Refresh your access token
+   */
+  async getRefreshToken(
+    refresh_token: string
+  ): Promise<GetRefreshTokenResponse> {
+    const params = new Map([
+      ["client_secret", this.CLIENT_SECRET],
+      ["grant_type", WITHINGS_GRANT_TYPE.refresh_token],
+      ["refresh_token", refresh_token],
+    ]);
+    return this.requestWithSignature<GetRefreshTokenResponse>(
+      WITHINGS_ENDPOINTS.oauth2,
+      WITHINGS_ACTIONS.requesttoken,
+      params
+    );
+  }
+
+  async getNotifyList(accessToken: string): Promise<GetNotifyListResponse> {
+    const query = new Map([
+      ["action", "list"],
+      ["appli", "1"],
+    ]);
+
+    const response = await this.postRequest<GetNotifyListResponse>(
+      WITHINGS_ENDPOINTS.notify,
+      query,
+      {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    );
+
+    return response.data;
+  }
+
+  async addNotifySubscribe(
+    accessToken: string,
+    url: string
+  ): Promise<AddNotifySubscribeResponse> {
+    const params = new Map([
+      ["callbackurl", url],
+      ["appli", "1"],
+    ]);
+
+    return this.requestWithSignature<AddNotifySubscribeResponse>(
+      WITHINGS_ENDPOINTS.notify,
+      WITHINGS_ACTIONS.subscribe,
+      params,
+      {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    );
+  }
+
+  async removeNotifySubscribe(
+    accessToken: string,
+    url: string
+  ): Promise<RevokeNotifySubscribeResponse> {
+    const params = new Map([
+      ["callbackurl", url],
+      ["appli", "1"],
+    ]);
+
+    return this.requestWithSignature<RevokeNotifySubscribeResponse>(
+      WITHINGS_ENDPOINTS.notify,
+      WITHINGS_ACTIONS.revoke,
+      params,
+      {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    );
+  }
+
+  async getMeasure(
+    accessToken: string,
+    startdate: number,
+    enddate: number
+  ): Promise<GetMeasureResult> {
+    const params = new Map([
+      ["action", "getmeas"],
+      ["meastypes", "1,8"],
+      ["category", "1"],
+      ["startdate", startdate.toString()],
+      ["enddate", enddate.toString()],
+    ]);
+
+    return this.requestWithSignature<GetMeasureResult>(
+      WITHINGS_ENDPOINTS.measure,
+      WITHINGS_ACTIONS.getmeas,
+      params,
+      {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    );
+  }
+}
 
 export default Client;
