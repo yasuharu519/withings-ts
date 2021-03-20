@@ -6,7 +6,7 @@ import {
   GetNotifyListResponse,
   GetRefreshTokenResponse,
   AddNotifySubscribeResponse,
-  RevokeNotifySubscribeResponse,
+  RevokeNotifyResponse,
   GetMeasureResult,
 } from "./requestTypes";
 
@@ -122,7 +122,7 @@ class Client {
   }
 
   /**
-   *  OAuth2.0 - Get your access token
+   * OAuth2.0 - Get your access token
    */
   async getAccessToken(
     authorizationCode: string
@@ -159,6 +159,9 @@ class Client {
     );
   }
 
+  /**
+   * Notify - List
+   */
   async getNotifyList(accessToken: string): Promise<GetNotifyListResponse> {
     const query = new Map([
       ["action", "list"],
@@ -174,7 +177,10 @@ class Client {
     return response.data;
   }
 
-  async addNotifySubscribe(
+  /**
+   * Notify - Subscribe
+   */
+  async subscribeNotify(
     accessToken: string,
     url: URL
   ): Promise<AddNotifySubscribeResponse> {
@@ -191,16 +197,19 @@ class Client {
     );
   }
 
-  async removeNotifySubscribe(
+  /**
+   * Notify - Revoke
+   */
+  async revokeNotify(
     accessToken: string,
     url: URL
-  ): Promise<RevokeNotifySubscribeResponse> {
+  ): Promise<RevokeNotifyResponse> {
     const params = new Map([
       ["callbackurl", url.href],
       ["appli", "1"],
     ]);
 
-    return this.requestWithSignature<RevokeNotifySubscribeResponse>(
+    return this.requestWithSignature<RevokeNotifyResponse>(
       WITHINGS_ENDPOINTS.notify,
       WITHINGS_ACTIONS.revoke,
       params,
@@ -208,7 +217,10 @@ class Client {
     );
   }
 
-  async getMeasure(
+  /**
+   * Measure - Getmeas
+   */
+  async getMeas(
     accessToken: string,
     startdate: number,
     enddate: number

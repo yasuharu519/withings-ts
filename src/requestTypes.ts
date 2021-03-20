@@ -38,7 +38,7 @@ export interface AddNotifySubscribeResponse {
   body: {};
 }
 
-export interface RevokeNotifySubscribeResponse {
+export interface RevokeNotifyResponse {
   status: number;
   body: {};
 }
