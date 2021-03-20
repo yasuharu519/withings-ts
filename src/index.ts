@@ -78,24 +78,6 @@ class Client {
     return response;
   }
 
-  private async requestWithSignatureBase<ResponseType>(
-    endpoint: WITHINGS_ENDPOINTS,
-    signatureToken: Map<string, string>,
-    params: Map<string, string> = new Map(),
-    headers?: Object
-  ) {
-    const response = await this.postRequest<ResponseType>(
-      endpoint,
-      new Map({ ...signatureToken, ...params }).set(
-        "signature",
-        this.createSignature(Object.fromEntries(signatureToken))
-      ),
-      headers
-    );
-
-    return response.data;
-  }
-
   private async requestWithSignature<ResponseType>(
     endpoint: WITHINGS_ENDPOINTS,
     action: WITHINGS_ACTIONS,
@@ -109,12 +91,16 @@ class Client {
       ["nonce", nonce],
     ]);
 
-    return this.requestWithSignatureBase<ResponseType>(
+    const response = await this.postRequest<ResponseType>(
       endpoint,
-      signatureToken,
-      params,
+      new Map({ ...signatureToken, ...params }).set(
+        "signature",
+        this.createSignature(Object.fromEntries(signatureToken))
+      ),
       headers
     );
+
+    return response.data;
   }
 
   /**
@@ -127,10 +113,12 @@ class Client {
       ["timestamp", Math.floor(new Date().getTime() / 1000).toString()],
     ]);
 
-    return this.requestWithSignatureBase<GetNonceResponse>(
+    const response = await this.postRequest<GetNonceResponse>(
       WITHINGS_ENDPOINTS.signature,
       signatureToken
     );
+
+    return response.data;
   }
 
   /**
