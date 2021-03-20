@@ -1,0 +1,36 @@
+name: Create a release pull request
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Ruby 2.6
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6.x
+      - run: |
+          cat << EOF > pr.template
+          [Prod] Release <%= Time.now.strftime("%F %T") %>
+          <% pull_requests.each do |pr| -%>
+          <%=  pr.to_checklist_item %>
+          <% end -%>
+          EOF
+      - name: Create a release pull request
+        env:
+          GIT_PR_RELEASE_TEMPLATE: ./pr.template
+          GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PR_RELEASE_BRANCH_PRODUCTION: master
+          GIT_PR_RELEASE_BRANCH_STAGING: develop
+          GIT_PR_RELEASE_LABELS: release
+          TZ: Asia/Tokyo
+        run: |
+          gem install -N git-pr-release -v "1.4.0"
+          git-pr-release --no-fetch
