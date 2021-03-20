@@ -11,6 +11,7 @@ import {
   GetAuthenticationCodeResponse,
   GetNotifyResponse,
 } from "./requestTypes";
+import * as querystring from "querystring";
 
 const WITHINGS_API_ENDPOINT = "https://wbsapi.withings.net";
 const WITHINGS_ENDPOINTS = {
@@ -75,13 +76,16 @@ class Client {
     params: Map<string, string> = new Map(),
     headers?: Object
   ) {
-    const response = await axios.post<ResponseType>(endpoint, null, {
-      params: params,
-      headers: Object.assign(
-        { "Content-Type": "multipart/form-data" },
-        headers
-      ),
-    });
+    const response = await axios.post<ResponseType>(
+      `${endpoint}?${querystring.stringify(Object.fromEntries(params))}`,
+      null,
+      {
+        headers: Object.assign(
+          { "Content-Type": "multipart/form-data" },
+          headers
+        ),
+      }
+    );
 
     return response;
   }
@@ -104,7 +108,7 @@ class Client {
 
     const response = await this.postRequest<ResponseType>(
       endpoint,
-      new Map({ ...signatureToken, ...params }).set(
+      new Map([...signatureToken.entries(), ...params.entries()]).set(
         "signature",
         this.createSignature(Object.fromEntries(signatureToken))
       ),
@@ -126,7 +130,10 @@ class Client {
 
     const response = await this.postRequest<GetNonceResponse>(
       WITHINGS_ENDPOINTS.signature,
-      signatureToken
+      new Map([...signatureToken.entries()]).set(
+        "signature",
+        this.createSignature(Object.fromEntries(signatureToken))
+      )
     );
 
     return response.data;
