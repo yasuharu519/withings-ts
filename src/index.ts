@@ -8,10 +8,13 @@ import {
   AddNotifySubscribeResponse,
   RevokeNotifyResponse,
   GetMeasureResult,
+  GetAuthenticationCodeResponse,
+  GetNotifyResponse,
 } from "./requestTypes";
 
 const WITHINGS_API_ENDPOINT = "https://wbsapi.withings.net";
 const WITHINGS_ENDPOINTS = {
+  authorize2: "https://account.withings.com/oauth2_user/authorize2",
   signature: `${WITHINGS_API_ENDPOINT}/v2/signature`,
   oauth2: `${WITHINGS_API_ENDPOINT}/v2/oauth2`,
   notify: `${WITHINGS_API_ENDPOINT}/notify`,
@@ -25,6 +28,8 @@ const WITHINGS_ACTIONS = {
   subscribe: "subscribe",
   revoke: "revoke",
   getmeas: "getmeas",
+  get: "get",
+  list: "list",
 } as const;
 type WITHINGS_ACTIONS = typeof WITHINGS_ACTIONS[keyof typeof WITHINGS_ACTIONS];
 
@@ -62,6 +67,9 @@ class Client {
       .digest("hex");
   }
 
+  /**
+   * post request base
+   */
   private async postRequest<ResponseType>(
     endpoint: WITHINGS_ENDPOINTS,
     params: Map<string, string> = new Map(),
@@ -78,6 +86,9 @@ class Client {
     return response;
   }
 
+  /**
+   * post request with signature parameters
+   */
   private async requestWithSignature<ResponseType>(
     endpoint: WITHINGS_ENDPOINTS,
     action: WITHINGS_ACTIONS,
@@ -122,6 +133,34 @@ class Client {
   }
 
   /**
+   * OAuth2.0 - Get authentication code
+   */
+  async getAuthenticationCode(
+    state: string,
+    scope: string[],
+    isDemo: boolean = false
+  ): Promise<GetAuthenticationCodeResponse> {
+    const params = new Map([
+      ["response_type", "code"],
+      ["client_secret", this.CLIENT_SECRET],
+      ["state", state],
+      ["scope", scope.join(",")],
+      ["redirect_uri", this.CALLBACK_URI],
+    ]);
+    if (isDemo) {
+      params.set("mode", "demo");
+    }
+
+    const response = await axios.get<GetAuthenticationCodeResponse>(
+      WITHINGS_ENDPOINTS.authorize2,
+      {
+        params,
+      }
+    );
+    return response.data;
+  }
+
+  /**
    * OAuth2.0 - Get your access token
    */
   async getAccessToken(
@@ -157,6 +196,25 @@ class Client {
       WITHINGS_ACTIONS.requesttoken,
       params
     );
+  }
+
+  /**
+   * Notify - Get
+   */
+  async getNotify(accessToken: string, url: URL): Promise<GetNotifyResponse> {
+    const query = new Map([
+      ["action", WITHINGS_ACTIONS.get],
+      ["callbackurl", url.href],
+      ["appli", "1"],
+    ]);
+
+    const response = await this.postRequest<GetNotifyResponse>(
+      WITHINGS_ENDPOINTS.notify,
+      query,
+      { Authorization: `Bearer ${accessToken}` }
+    );
+
+    return response.data;
   }
 
   /**

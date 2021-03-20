@@ -5,6 +5,8 @@ export interface GetNonceResponse {
   };
 }
 
+export interface GetAuthenticationCodeResponse {}
+
 export interface GetAccessTokenResponse {
   status: number;
   body: {
@@ -24,6 +26,15 @@ export interface NotifyObject {
   callbackurl: string;
   expires: number;
   comment: string;
+}
+
+export interface GetNotifyResponse {
+  status: number;
+  body: {
+    appli: number;
+    callbackurl: string;
+    comment: string;
+  };
 }
 
 export interface GetNotifyListResponse {
