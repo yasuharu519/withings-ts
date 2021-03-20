@@ -40,7 +40,7 @@ const WITHINGS_GRANT_TYPE = {
 } as const;
 type WITHINGS_GRANT_TYPE = typeof WITHINGS_GRANT_TYPE[keyof typeof WITHINGS_GRANT_TYPE];
 
-class Client {
+class WithingsClient {
   CLIENT_ID: string;
   CLIENT_SECRET: string;
   CALLBACK_URI: string;
@@ -307,4 +307,4 @@ class Client {
   }
 }
 
-export default Client;
+export default WithingsClient;
