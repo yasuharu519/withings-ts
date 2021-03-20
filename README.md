@@ -1,6 +1,7 @@
 # withings-ts
 
-Library for withings API.
+Library for withings API. Currently only some of APIs are supported.
+In order to use withings API, you need to register developer application and get client id and secret.
 
 ## Supported API
 
