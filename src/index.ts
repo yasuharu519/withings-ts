@@ -10,12 +10,14 @@ import {
   GetMeasureResult,
 } from "./requestTypes";
 
+const WITHINGS_API_ENDPOINT = "https://wbsapi.withings.net";
 const WITHINGS_ENDPOINTS = {
-  signature: "https://wbsapi.withings.net/v2/signature",
-  oauth2: "https://wbsapi.withings.net/v2/oauth2",
-  notify: "https://wbsapi.withings.net/notify",
-  measure: "https://wbsapi.withings.net/measure",
-};
+  signature: `${WITHINGS_API_ENDPOINT}/v2/signature`,
+  oauth2: `${WITHINGS_API_ENDPOINT}/v2/oauth2`,
+  notify: `${WITHINGS_API_ENDPOINT}/notify`,
+  measure: `${WITHINGS_API_ENDPOINT}/measure`,
+} as const;
+type WITHINGS_ENDPOINTS = typeof WITHINGS_ENDPOINTS[keyof typeof WITHINGS_ENDPOINTS];
 
 const WITHINGS_ACTIONS = {
   getnonce: "getnonce",
@@ -61,16 +63,14 @@ class Client {
   }
 
   private async postRequest<ResponseType>(
-    endpoint: string,
+    endpoint: WITHINGS_ENDPOINTS,
     params: Map<string, string> = new Map(),
     headers?: Object
   ) {
     const response = await axios.post<ResponseType>(endpoint, null, {
       params: params,
       headers: Object.assign(
-        {
-          "Content-Type": "multipart/form-data",
-        },
+        { "Content-Type": "multipart/form-data" },
         headers
       ),
     });
@@ -79,7 +79,7 @@ class Client {
   }
 
   private async requestWithSignatureBase<ResponseType>(
-    endpoint: string,
+    endpoint: WITHINGS_ENDPOINTS,
     signatureToken: Map<string, string>,
     params: Map<string, string> = new Map(),
     headers?: Object
@@ -97,7 +97,7 @@ class Client {
   }
 
   private async requestWithSignature<ResponseType>(
-    endpoint: string,
+    endpoint: WITHINGS_ENDPOINTS,
     action: WITHINGS_ACTIONS,
     params: Map<string, string>,
     headers?: Object
@@ -180,9 +180,7 @@ class Client {
     const response = await this.postRequest<GetNotifyListResponse>(
       WITHINGS_ENDPOINTS.notify,
       query,
-      {
-        Authorization: `Bearer ${accessToken}`,
-      }
+      { Authorization: `Bearer ${accessToken}` }
     );
 
     return response.data;
@@ -190,10 +188,10 @@ class Client {
 
   async addNotifySubscribe(
     accessToken: string,
-    url: string
+    url: URL
   ): Promise<AddNotifySubscribeResponse> {
     const params = new Map([
-      ["callbackurl", url],
+      ["callbackurl", url.href],
       ["appli", "1"],
     ]);
 
@@ -201,18 +199,16 @@ class Client {
       WITHINGS_ENDPOINTS.notify,
       WITHINGS_ACTIONS.subscribe,
       params,
-      {
-        Authorization: `Bearer ${accessToken}`,
-      }
+      { Authorization: `Bearer ${accessToken}` }
     );
   }
 
   async removeNotifySubscribe(
     accessToken: string,
-    url: string
+    url: URL
   ): Promise<RevokeNotifySubscribeResponse> {
     const params = new Map([
-      ["callbackurl", url],
+      ["callbackurl", url.href],
       ["appli", "1"],
     ]);
 
@@ -220,9 +216,7 @@ class Client {
       WITHINGS_ENDPOINTS.notify,
       WITHINGS_ACTIONS.revoke,
       params,
-      {
-        Authorization: `Bearer ${accessToken}`,
-      }
+      { Authorization: `Bearer ${accessToken}` }
     );
   }
 
@@ -232,7 +226,7 @@ class Client {
     enddate: number
   ): Promise<GetMeasureResult> {
     const params = new Map([
-      ["action", "getmeas"],
+      ["action", WITHINGS_ACTIONS.getmeas],
       ["meastypes", "1,8"],
       ["category", "1"],
       ["startdate", startdate.toString()],
@@ -243,9 +237,7 @@ class Client {
       WITHINGS_ENDPOINTS.measure,
       WITHINGS_ACTIONS.getmeas,
       params,
-      {
-        Authorization: `Bearer ${accessToken}`,
-      }
+      { Authorization: `Bearer ${accessToken}` }
     );
   }
 }
