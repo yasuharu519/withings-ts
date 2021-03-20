@@ -17,12 +17,12 @@ jobs:
         with:
           ruby-version: 2.6.x
       - run: |
-        cat << EOF > pr.template
-        [Prod] Release <%= Time.now.strftime("%F %T") %>
-        <% pull_requests.each do |pr| -%>
-        <%=  pr.to_checklist_item %>
-        <% end -%>
-        EOF
+          cat << EOF > pr.template
+          [Prod] Release <%= Time.now.strftime("%F %T") %>
+          <% pull_requests.each do |pr| -%>
+          <%=  pr.to_checklist_item %>
+          <% end -%>
+          EOF
       - name: Create a release pull request
         env:
           GIT_PR_RELEASE_TEMPLATE: ./pr.template
