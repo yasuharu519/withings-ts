@@ -2,6 +2,7 @@
   "name": "withings-ts",
   "description": "withings API library",
   "main": "dist/index.js",
+  "version": "0.0.1",
   "files": [
     "dist"
   ],
