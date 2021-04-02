@@ -8,7 +8,6 @@ import {
   AddNotifySubscribeResponse,
   RevokeNotifyResponse,
   GetMeasureResult,
-  GetAuthenticationCodeResponse,
   GetNotifyResponse,
 } from "./requestTypes";
 import * as querystring from "querystring";
@@ -140,13 +139,13 @@ class WithingsClient {
   }
 
   /**
-   * OAuth2.0 - Get authentication code
+   * OAuth2.0 - Generates URL to get authentication code
    */
-  async getAuthenticationCode(
+  generateGetAuthenticationCodeUrl(
     state: string,
     scope: string[],
     isDemo: boolean = false
-  ): Promise<GetAuthenticationCodeResponse> {
+  ): URL {
     const params = new Map([
       ["response_type", "code"],
       ["client_secret", this.CLIENT_SECRET],
@@ -158,13 +157,11 @@ class WithingsClient {
       params.set("mode", "demo");
     }
 
-    const response = await axios.get<GetAuthenticationCodeResponse>(
-      WITHINGS_ENDPOINTS.authorize2,
-      {
-        params,
-      }
+    return new URL(
+      `${WITHINGS_ENDPOINTS.authorize2}?${querystring.stringify(
+        Object.fromEntries(params)
+      )}`
     );
-    return response.data;
   }
 
   /**

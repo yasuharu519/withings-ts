@@ -5,8 +5,6 @@ export interface GetNonceResponse {
   };
 }
 
-export interface GetAuthenticationCodeResponse {}
-
 export interface GetAccessTokenResponse {
   status: number;
   body: {
