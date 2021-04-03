@@ -2,7 +2,9 @@ let express = require('express');
 let WithingsClient = require('withings-ts').default
 let app = express();
 
-// https://account.withings.com/partner/add_oauth2
+// First you need register application on https://account.withings.com/partner/add_oauth2
+// After registration, you can get client id and client secret, please put those here.
+// While registration, you can set callback url for authentication process, please put same one here.
 let client = new WithingsClient(
     "<client id>",
     "<client secret>",
