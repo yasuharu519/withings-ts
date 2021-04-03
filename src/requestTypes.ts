@@ -5,18 +5,24 @@ export interface GetNonceResponse {
   };
 }
 
+export interface User {
+  userid: string;
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  scope: string;
+  csrf_token: string;
+  token_type: string;
+}
+
 export interface GetAccessTokenResponse {
   status: number;
-  body: {
-    user: User;
-  };
+  body: User;
 }
 
 export interface GetRefreshTokenResponse {
   status: number;
-  body: {
-    user: User;
-  };
+  body: User;
 }
 
 export interface NotifyObject {
@@ -52,22 +58,13 @@ export interface RevokeNotifyResponse {
   body: {};
 }
 
-export interface User {
-  userid: string;
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  scope: string;
-  csrf_token: string;
-  token_type: string;
-}
-
 export type Measure = {
   value: number;
   type: number;
   unit: number;
-  algo?: number;
-  fm?: number;
+  algo?: number; // deprecated
+  fm?: number; // deprecated
+  fw?: number; // deprecated
 };
 
 export type MeasureGroups = {
@@ -86,4 +83,6 @@ export type GetMeasureResult = {
   updatetime: number;
   timezone: string;
   measuregrps: MeasureGroups[];
+  more: number;
+  offset: number;
 };
