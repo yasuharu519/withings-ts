@@ -148,7 +148,7 @@ class WithingsClient {
   ): URL {
     const params = new Map([
       ["response_type", "code"],
-      ["client_secret", this.CLIENT_SECRET],
+      ["client_id", this.CLIENT_ID],
       ["state", state],
       ["scope", scope.join(",")],
       ["redirect_uri", this.CALLBACK_URI],
