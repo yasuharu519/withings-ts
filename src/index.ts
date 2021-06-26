@@ -227,7 +227,6 @@ class WithingsClient {
   async getNotifyList(accessToken: string): Promise<GetNotifyListResponse> {
     const query = new Map([
       ["action", "list"],
-      ["appli", "1"],
     ]);
 
     const response = await this.postRequest<GetNotifyListResponse>(
@@ -244,11 +243,13 @@ class WithingsClient {
    */
   async subscribeNotify(
     accessToken: string,
-    url: URL
+    url: URL,
+    appli : string
   ): Promise<AddNotifySubscribeResponse> {
+    
     const params = new Map([
       ["callbackurl", url.href],
-      ["appli", "1"],
+      ["appli", appli],
     ]);
 
     return this.requestWithSignature<AddNotifySubscribeResponse>(
@@ -264,11 +265,12 @@ class WithingsClient {
    */
   async revokeNotify(
     accessToken: string,
-    url: URL
+    url: URL,
+    appli : string
   ): Promise<RevokeNotifyResponse> {
     const params = new Map([
       ["callbackurl", url.href],
-      ["appli", "1"],
+      ["appli", appli],
     ]);
 
     return this.requestWithSignature<RevokeNotifyResponse>(
@@ -289,7 +291,7 @@ class WithingsClient {
   ): Promise<GetMeasureResult> {
     const params = new Map([
       ["action", WITHINGS_ACTIONS.getmeas],
-      ["meastypes", "1,8"],
+      ["meastypes", "1,4,5.6,8,9,10,11,12,54,71,73,76,77,88,91"],
       ["category", "1"],
       ["startdate", startdate.toString()],
       ["enddate", enddate.toString()],
