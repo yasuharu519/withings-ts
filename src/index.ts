@@ -9,6 +9,7 @@ import {
   RevokeNotifyResponse,
   GetMeasureResult,
   GetNotifyResponse,
+  GetHeartListResponse
 } from "./requestTypes";
 import * as querystring from "querystring";
 
@@ -19,6 +20,8 @@ const WITHINGS_ENDPOINTS = {
   oauth2: `${WITHINGS_API_ENDPOINT}/v2/oauth2`,
   notify: `${WITHINGS_API_ENDPOINT}/notify`,
   measure: `${WITHINGS_API_ENDPOINT}/measure`,
+  heart: `${WITHINGS_API_ENDPOINT}/heart`,
+
 } as const;
 type WITHINGS_ENDPOINTS = typeof WITHINGS_ENDPOINTS[keyof typeof WITHINGS_ENDPOINTS];
 
@@ -280,6 +283,34 @@ class WithingsClient {
       { Authorization: `Bearer ${accessToken}` }
     );
   }
+
+  /**
+   * Heart - List
+   */
+
+   async getHeartList(
+    accessToken: string,
+    startdate: number,
+    enddate: number,
+    offset : number
+  ): Promise<GetHeartListResponse> {
+    const params = new Map([
+      ["action", WITHINGS_ACTIONS.list],
+      ["offset", offset.toString()],
+      ["startdate", startdate.toString()],
+      ["enddate", enddate.toString()],
+    ]);
+
+    return this.requestWithSignature<GetHeartListResponse>(
+      WITHINGS_ENDPOINTS.heart,
+      WITHINGS_ACTIONS.list,
+      params,
+      { Authorization: `Bearer ${accessToken}` }
+    );
+  }
+}
+
+
 
   /**
    * Measure - Getmeas
