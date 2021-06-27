@@ -86,3 +86,27 @@ export type GetMeasureResult = {
   more: number;
   offset: number;
 };
+
+export type GetHeartListResponse = {
+  status: number;
+  body: {
+    more: boolean;
+    offset: number;
+    series: Series[];
+  };
+};
+
+export type Series = {
+  model: number;
+  bloodpressure: {
+    diastole: number;
+    systole: number;
+  };
+  heart_rate: number;
+  timestamp: number;
+  deviceid: string;
+  ecg: {
+    signalid: number;
+    afib: number;
+  };
+};
