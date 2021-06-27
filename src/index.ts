@@ -308,7 +308,7 @@ class WithingsClient {
       { Authorization: `Bearer ${accessToken}` }
     );
   }
-}
+
 
 
 
