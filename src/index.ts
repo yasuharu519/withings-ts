@@ -4,11 +4,16 @@ import {
   GetAccessTokenResponse,
   GetNonceResponse,
   GetNotifyListResponse,
+  GetNotifyListRequest,
   GetRefreshTokenResponse,
-  AddNotifySubscribeResponse,
+  SubscribeNotifyRequest,
+  SubscribeNotifyResponse,
   RevokeNotifyResponse,
   GetMeasureResult,
+  GetMeasureRequest,
   GetNotifyResponse,
+  GetNotifyRequest,
+  RevokeNotifyRequest,
 } from "./requestTypes";
 import * as querystring from "querystring";
 
@@ -205,11 +210,14 @@ class WithingsClient {
   /**
    * Notify - Get
    */
-  async getNotify(accessToken: string, url: URL): Promise<GetNotifyResponse> {
+  async getNotify(
+    accessToken: string,
+    req: GetNotifyRequest
+  ): Promise<GetNotifyResponse> {
     const query = new Map([
       ["action", WITHINGS_ACTIONS.get],
-      ["callbackurl", url.href],
-      ["appli", "1"],
+      ["callbackurl", req.url.href],
+      ["appli", req.appli.toString()],
     ]);
 
     const response = await this.postRequest<GetNotifyResponse>(
@@ -224,10 +232,13 @@ class WithingsClient {
   /**
    * Notify - List
    */
-  async getNotifyList(accessToken: string): Promise<GetNotifyListResponse> {
+  async getNotifyList(
+    accessToken: string,
+    req: GetNotifyListRequest
+  ): Promise<GetNotifyListResponse> {
     const query = new Map([
-      ["action", "list"],
-      ["appli", "1"],
+      ["action", WITHINGS_ACTIONS.list],
+      ["appli", req.appli.toString()],
     ]);
 
     const response = await this.postRequest<GetNotifyListResponse>(
@@ -244,14 +255,14 @@ class WithingsClient {
    */
   async subscribeNotify(
     accessToken: string,
-    url: URL
-  ): Promise<AddNotifySubscribeResponse> {
+    req: SubscribeNotifyRequest
+  ): Promise<SubscribeNotifyResponse> {
     const params = new Map([
-      ["callbackurl", url.href],
-      ["appli", "1"],
+      ["callbackurl", req.url.href],
+      ["appli", req.appli.toString()],
     ]);
 
-    return this.requestWithSignature<AddNotifySubscribeResponse>(
+    return this.requestWithSignature<SubscribeNotifyResponse>(
       WITHINGS_ENDPOINTS.notify,
       WITHINGS_ACTIONS.subscribe,
       params,
@@ -264,11 +275,11 @@ class WithingsClient {
    */
   async revokeNotify(
     accessToken: string,
-    url: URL
+    req: RevokeNotifyRequest
   ): Promise<RevokeNotifyResponse> {
     const params = new Map([
-      ["callbackurl", url.href],
-      ["appli", "1"],
+      ["callbackurl", req.url.href],
+      ["appli", req.appli.toString()],
     ]);
 
     return this.requestWithSignature<RevokeNotifyResponse>(
@@ -284,16 +295,16 @@ class WithingsClient {
    */
   async getMeas(
     accessToken: string,
-    startdate: number,
-    enddate: number
+    req: GetMeasureRequest
   ): Promise<GetMeasureResult> {
     const params = new Map([
       ["action", WITHINGS_ACTIONS.getmeas],
       ["meastypes", "1,8"],
-      ["category", "1"],
-      ["startdate", startdate.toString()],
-      ["enddate", enddate.toString()],
+      ["category", req.category.toString()],
+      ["startdate", req.startdate.toString()],
+      ["enddate", req.enddate.toString()],
     ]);
+    const updatedParams = params.
 
     return this.requestWithSignature<GetMeasureResult>(
       WITHINGS_ENDPOINTS.measure,
