@@ -32,6 +32,11 @@ export interface NotifyObject {
   comment: string;
 }
 
+export interface GetNotifyRequest {
+  url: URL;
+  appli: number;
+}
+
 export interface GetNotifyResponse {
   status: number;
   body: {
@@ -41,6 +46,10 @@ export interface GetNotifyResponse {
   };
 }
 
+export interface GetNotifyListRequest {
+  appli: number;
+}
+
 export interface GetNotifyListResponse {
   status: number;
   body: {
@@ -48,9 +57,19 @@ export interface GetNotifyListResponse {
   };
 }
 
-export interface AddNotifySubscribeResponse {
+export interface SubscribeNotifyRequest {
+  url: URL;
+  appli: number;
+}
+
+export interface SubscribeNotifyResponse {
   status: number;
   body: {};
+}
+
+export interface RevokeNotifyRequest {
+  url: URL;
+  appli: number;
 }
 
 export interface RevokeNotifyResponse {
@@ -77,6 +96,14 @@ export type MeasureGroups = {
   hash_deviceid: string;
   measures: Measure[];
   comment: string;
+};
+
+export type GetMeasureRequest = {
+  meastype?: number;
+  meastypes?: Array<number>;
+  category: number;
+  startdate: number;
+  enddate: number;
 };
 
 export type GetMeasureResult = {
